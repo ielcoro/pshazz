@@ -1,8 +1,32 @@
+function global:pshazz_time {
+	return (get-date -DisplayHint time -format T)
+}
+
 function global:pshazz_dir {
 	if($pwd -like $home) { return '~' }
 
 	$dir = split-path $pwd -leaf
 	if($dir -imatch '[a-z]:\\') { return '\' }
+	return $dir
+}
+
+function global:pshazz_two_dir {
+	if($pwd -like $home) { return '~' }
+
+	$dir = split-path $pwd -leaf
+	$parent_pwd = split-path $pwd -parent
+	if($dir -imatch '[a-z]:\\') { return '\' }
+
+	if($parent_pwd) {
+		$parent = split-path $parent_pwd -leaf
+
+		if( $parent -imatch '[a-z]:\\') {
+			$dir = "\$dir"
+		} else {
+			$dir = "$parent\$dir"
+		}
+	}
+
 	return $dir
 }
 
@@ -46,12 +70,13 @@ function global:prompt {
 	$saved_lastexitcode = $lastexitcode
 
 	$global:pshazz.prompt_vars = @{
+		time     = pshazz_time;
 		dir      = pshazz_dir;
+		two_dir  = pshazz_two_dir;
 		path     = pshazz_path;
 		user     = $env:username;
 		hostname = $env:computername;
 		rightarrow = pshazz_rightarrow;
-		time	 = pshazz_time;
 	}
 
 	# get plugins to populate prompt vars
